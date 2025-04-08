@@ -51,7 +51,12 @@ public class DrawingUtils extends JFrame {
                             ++i;
                         }
 
-                        double probability = Double.parseDouble(prob.toString());
+                        double probability;
+                        try {
+                            probability = Double.parseDouble(prob.toString());
+                        } catch (NumberFormatException e) {
+                            probability = Double.parseDouble(prob.toString().replace(": ", ""));
+                        }
 
                         if (probability < 0) {
                             throw new GraphException("Probability less than 0");
@@ -75,7 +80,12 @@ public class DrawingUtils extends JFrame {
                             throw new GraphException("Expected number of messages is infinity");
                         }
 
-                        double expMessage = Double.parseDouble(expectedMessage.toString());
+                        double expMessage;
+                        try {
+                            expMessage = Double.parseDouble(expectedMessage.toString());
+                        } catch (NumberFormatException e) {
+                            expMessage = Double.parseDouble(expectedMessage.toString().replace(": ", ""));
+                        }
 
                         if (expMessage < 0) {
                             throw new GraphException("Expected number of messages less than 0");
