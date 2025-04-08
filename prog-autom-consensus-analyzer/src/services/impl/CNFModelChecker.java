@@ -1,7 +1,6 @@
 package services.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import exceptions.GraphException;
 import repositories.model.ModelCheckResult;
 import repositories.model.ModelCheckerResultWrapper;
@@ -49,9 +48,10 @@ public class CNFModelChecker {
         System.out.printf("writing results to json in %s%n", outputPathJson);
 
         ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         try {
-            objectMapper.writeValue(new File(outputPathJson), modelCheckerResultWrapper);
+            objectMapper
+                .writerWithDefaultPrettyPrinter()
+                .writeValue(new File(outputPathJson), modelCheckerResultWrapper);
 
             if (computeBackwards) {
                 outputPath = outputPath + "/graph.png";
