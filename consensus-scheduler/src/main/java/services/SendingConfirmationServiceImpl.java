@@ -33,6 +33,7 @@ public class SendingConfirmationServiceImpl implements SendingConfirmationServic
     public boolean sendForConfirmationCustomValues(SenderService senderService, String analyticsPath,
                                                    double probability, double messages) {
         ObjectMapper objectMapper = new ObjectMapper();
+        double EPS = 1e-6;
 
         try {
             ModelCheckerResultWrapper modelCheckerResultWrapper = objectMapper.readValue(new File(analyticsPath),
@@ -40,7 +41,8 @@ public class SendingConfirmationServiceImpl implements SendingConfirmationServic
 
             // TODO: if such element is not present, find the closest one
             ModelCheckResult result = modelCheckerResultWrapper.getModelCheckResultList().stream()
-                    .filter(r -> r.getProbability() == probability && r.getExpectedMessages() == messages)
+                    .filter(r -> Math.abs(r.getProbability() - probability) < EPS &&
+                            Math.abs(r.getExpectedMessages() - messages) < EPS)
                     .findAny()
                     .orElseThrow();
 

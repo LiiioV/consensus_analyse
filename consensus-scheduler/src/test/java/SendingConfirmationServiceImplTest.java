@@ -1,5 +1,12 @@
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.yaml.snakeyaml.Yaml;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import services.SenderService;
 import services.SendingConfirmationService;
 import services.SendingConfirmationServiceImpl;
@@ -36,7 +43,7 @@ public class SendingConfirmationServiceImplTest {
         boolean consensusReached = confirmationService.sendForConfirmationCustomValues(new SenderServiceImpl(),
                 "src/test/resources/results_backwards.json",
                 1.0,
-                3.0919090686339907);
+                23.99982489928296);
 
         assertTrue(consensusReached);
     }
@@ -58,10 +65,37 @@ public class SendingConfirmationServiceImplTest {
     }
 
     static class SenderServiceImpl implements SenderService {
+        private static final String PROPERTIES_PATH = "../prog-autom-consensus-analyzer/resources/cnf-1/cnf_1_properties.yaml";
+        private HashMap<String, Double> orgReplyProbability;
+
+        public SenderServiceImpl() {
+            this.orgReplyProbability = new HashMap<>();
+            loadProbabilitiesFromFile(PROPERTIES_PATH);
+        }
+        
+        private void loadProbabilitiesFromFile(String filePath) {
+            try (InputStream inputStream = Files.newInputStream(Paths.get(filePath))) {
+                Yaml yaml = new Yaml();
+                Map<String, List<Map<String, Object>>> data = yaml.load(inputStream);
+                List<Map<String, Object>> organizations = data.get("Organizations");
+
+                for (Map<String, Object> org : organizations) {
+                    String name = (String) org.get("Name");
+                    Double probability = (Double) org.get("Pr");
+                    this.orgReplyProbability.put(name, probability);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         @Override
         public int getReply(String orgName, int transactionId) {
-            // random either accepts or rejects a transaction
-            return ThreadLocalRandom.current().nextInt(0, 2);
+            Double probability = orgReplyProbability.get(orgName);
+            if (probability == null) {
+                throw new IllegalArgumentException("Organization not found: " + orgName);
+            }
+            return ThreadLocalRandom.current().nextDouble() <= probability ? 1 : 0;
         }
 
         @Override
